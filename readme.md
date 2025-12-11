@@ -1,7 +1,7 @@
 # 预算项目管理与文档生成系统 - README
 [![Python Version](https://img.shields.io/badge/Python-3.7%2B-blue.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![GitHub Stars](https://img.shields.io/github/stars/mjz1029/budgHomeandCorporateCustomerCostProject?style=social)](https://github.com/mjz1029/HomeandCorporateCustomerCostProject)
+[![GitHub Stars](https://img.shields.io/github/stars/mjz1029/HomeandCorporateCustomerCostProject?style=social)](https://github.com/mjz1029/HomeandCorporateCustomerCostProject)
 [![GitHub Forks](https://img.shields.io/github/forks/mjz1029/HomeandCorporateCustomerCostProject?style=social)](https://github.com/mjz1029/HomeandCorporateCustomerCostProject)
 
 ## 一、项目简介
