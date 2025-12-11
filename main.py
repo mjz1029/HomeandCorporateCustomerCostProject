@@ -751,7 +751,7 @@ class HomeAndEnterpriseTool:
                         return (row_idx, col_idx, cell)
         return (None, None, None)
 
-    # ===================== Word文档生成（核心修复：右侧列填写内容，保留原文字）=====================
+    # ===================== Word文档生成（核心修改：维修项目名称右侧列填写）=====================
     def generate_documents(self):
         if not self.word_app_template or not self.word_review_template:
             messagebox.showwarning("提示", "请先选择申请表和会审单模板！")
@@ -787,21 +787,18 @@ class HomeAndEnterpriseTool:
             self.status_var.set(f"❌ 生成失败：{str(e)}")
 
     def fill_application_form(self, project_name, project_date, cycle, work_list):
-        """填充申请表（修复：在关键词单元格右侧列填写内容，保留原文字）"""
+        """填充申请表（核心修改：维修项目名称右侧列填写，保留原文字）"""
         doc = Document(self.word_app_template)
         if not doc.tables:
             raise ValueError("申请表模板中未找到表格！")
         target_table = doc.tables[0]
 
+        # ========== 原有基础信息填充（保留，移除原项目名称填充项）==========
         fill_items = [
             (0, 1, self.base_info["申请单位"], WD_PARAGRAPH_ALIGNMENT.LEFT),
             (0, 3, project_date, WD_PARAGRAPH_ALIGNMENT.CENTER),
             (0, 4, project_date, WD_PARAGRAPH_ALIGNMENT.CENTER),
             (0, 6, self.base_info["申请人"], WD_PARAGRAPH_ALIGNMENT.LEFT),
-            (1, 1, project_name, WD_PARAGRAPH_ALIGNMENT.CENTER),
-            (1, 2, project_name, WD_PARAGRAPH_ALIGNMENT.CENTER),
-            (1, 3, project_name, WD_PARAGRAPH_ALIGNMENT.CENTER),
-            (1, 4, project_name, WD_PARAGRAPH_ALIGNMENT.CENTER),
             (1, 6, self.base_info["联系电话"], WD_PARAGRAPH_ALIGNMENT.LEFT),
             (2, 1, cycle, WD_PARAGRAPH_ALIGNMENT.LEFT),
             (2, 3, f"{self.total_amount:.2f}元", WD_PARAGRAPH_ALIGNMENT.CENTER),
@@ -817,7 +814,32 @@ class HomeAndEnterpriseTool:
             except IndexError:
                 raise IndexError(f"申请表表格缺少行{row_idx}列{col_idx}的单元格")
 
-        # ===================== 修复：在“工作量及材料清单”右侧列填写内容，保留原文字 =====================
+        # ========== 核心修改1：维修项目名称 - 右侧列填写 ==========
+        # 查找“维修项目名称”/“项目名称”单元格
+        name_row_idx, name_col_idx, _ = self.find_cell_by_text(target_table, ["维修项目名称", "项目名称"])
+        # 未找到时的兜底逻辑（保留原有的行1列1等位置，避免失效）
+        if name_row_idx is None:
+            name_row_idx = 1
+            name_col_idx = 1
+            # 提示用户模板不规范
+            messagebox.showwarning("提示", "申请表模板中未找到“维修项目名称/项目名称”单元格，使用默认位置填充")
+
+        # 确定填充列：原列的下一列（右侧列）
+        name_fill_col = name_col_idx + 1
+        # 边界处理：若超出列数，使用最后一列
+        if name_fill_col >= len(target_table.columns):
+            name_fill_col = len(target_table.columns) - 1
+
+        # 填写项目名称（保留原单元格文字）
+        name_fill_cell = target_table.cell(name_row_idx, name_fill_col)
+        name_fill_cell.text = project_name
+        # 设置格式
+        for para in name_fill_cell.paragraphs:
+            para.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+            for run in para.runs:
+                run.font.size = Pt(10)
+
+        # ========== 核心修改2：工作量及材料清单 - 右侧列填写（保留原逻辑）==========
         # 查找包含“工作量及材料清单”或“主要工作量及材料清单”的单元格
         list_row_idx, list_col_idx, _ = self.find_cell_by_text(target_table,
                                                                ["工作量及材料清单", "主要工作量及材料清单"])
@@ -846,7 +868,7 @@ class HomeAndEnterpriseTool:
             for run in para.runs:
                 run.font.size = Pt(9)
 
-        # ===================== 图片插入逻辑保持不变 =====================
+        # ========== 图片插入逻辑保持不变 ==========
         keyword = "其他需求支撑文件"
         row_idx, col_idx, _ = self.find_cell_by_text(target_table, [keyword])
         if row_idx is not None and col_idx is not None:
@@ -872,14 +894,14 @@ class HomeAndEnterpriseTool:
             doc.save(save_path)
 
     def fill_review_form(self, project_name, project_date, cycle, work_list):
-        """填充会审单（修复：在关键词单元格右侧列填写内容，保留原文字）"""
+        """填充会审单（核心修改：维修项目名称右侧列填写，保留原文字）"""
         doc = Document(self.word_review_template)
         if not doc.tables:
             raise ValueError("会审单模板中未找到表格！")
         target_table = doc.tables[0]
 
+        # ========== 原有基础信息填充（保留，移除原项目名称填充项）==========
         fill_items = [
-            (0, 1, project_name, WD_PARAGRAPH_ALIGNMENT.CENTER),
             (1, 1, f"{self.total_amount:.2f}元", WD_PARAGRAPH_ALIGNMENT.CENTER),
             (1, 5, project_date, WD_PARAGRAPH_ALIGNMENT.CENTER),
             (1, 9, cycle, WD_PARAGRAPH_ALIGNMENT.CENTER),
@@ -892,13 +914,7 @@ class HomeAndEnterpriseTool:
 
         for row_idx, col_idx, text, align in fill_items:
             try:
-                if row_idx == 0:
-                    for c in range(len(target_table.columns)):
-                        cell = target_table.cell(row_idx, c)
-                        cell.text = text
-                        for para in cell.paragraphs:
-                            para.alignment = align
-                elif row_idx == 1 and col_idx == 1:
+                if row_idx == 1 and col_idx == 1:
                     for c in range(1, 4):
                         cell = target_table.cell(row_idx, c)
                         cell.text = text
@@ -924,7 +940,35 @@ class HomeAndEnterpriseTool:
             except IndexError:
                 raise IndexError(f"会审单表格缺少行{row_idx}列{col_idx}的单元格")
 
-        # ===================== 步骤1：在“主要工作量及材料清单/工作量及材料清单”右侧列填写内容 =====================
+        # ========== 核心修改1：维修项目名称 - 右侧列填写 ==========
+        # 查找“维修项目名称”/“项目名称”单元格
+        name_row_idx, name_col_idx, _ = self.find_cell_by_text(target_table, ["维修项目名称", "项目名称"])
+        # 未找到时的兜底逻辑（保留原有的行0列1位置）
+        if name_row_idx is None:
+            name_row_idx = 0
+            name_col_idx = 1
+            messagebox.showwarning("提示", "会审单模板中未找到“维修项目名称/项目名称”单元格，使用默认位置填充")
+
+        # 确定填充列：原列的下一列（右侧列）
+        name_fill_col = name_col_idx + 1
+        if name_fill_col >= len(target_table.columns):
+            name_fill_col = len(target_table.columns) - 1
+
+        # 填写项目名称（保留原单元格文字）
+        name_fill_cell = target_table.cell(name_row_idx, name_fill_col)
+        name_fill_cell.text = project_name
+        # 若原逻辑是整行填充，可扩展为多个列（可选）
+        # 例如：填充整行右侧列
+        # for c in range(name_fill_col, len(target_table.columns)):
+        #     target_table.cell(name_row_idx, c).text = project_name
+        #     for para in target_table.cell(name_row_idx, c).paragraphs:
+        #         para.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+        for para in name_fill_cell.paragraphs:
+            para.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+            for run in para.runs:
+                run.font.size = Pt(10)
+
+        # ========== 核心修改2：主要工作量及材料清单 - 右侧列填写（保留原逻辑）==========
         # 查找包含清单关键词的单元格
         list_row_idx, list_col_idx, _ = self.find_cell_by_text(target_table,
                                                                ["主要工作量及材料清单", "工作量及材料清单"])
@@ -950,7 +994,7 @@ class HomeAndEnterpriseTool:
             for run in para.runs:
                 run.font.size = Pt(9)
 
-        # ===================== 步骤2：在“施工方实施计划”右侧列填写内容 =====================
+        # ========== 核心修改3：施工方实施计划 - 右侧列填写（保留原逻辑）==========
         # 查找包含“施工方实施计划”的单元格
         plan_row_idx, plan_col_idx, _ = self.find_cell_by_text(target_table, ["施工方实施计划"])
         # 若未找到，默认在清单行的下一行，与清单同列
