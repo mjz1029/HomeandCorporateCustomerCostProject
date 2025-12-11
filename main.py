@@ -56,15 +56,19 @@ class HomeAndEnterpriseTool:
             messagebox.showerror("数据保存失败", f"错误原因：{str(e)}")
 
     def load_budget_data(self):
-        """从本地JSON文件加载预算数据（持久化）"""
+        """从本地JSON文件加载预算数据（持久化），并初始化工程量为0"""
         if os.path.exists(BUDGET_DATA_FILE):
             try:
                 with open(BUDGET_DATA_FILE, "r", encoding="utf-8") as f:
                     self.budget_data = json.load(f)
+                # ========== 核心修改1：加载本地数据后，初始化工程量为0 ==========
+                for item in self.budget_data:
+                    item["quantity"] = 0.0  # 重置工程量为0
+                    item["total"] = 0.0  # 重置合计金额为0
                 # 重新生成连续ID
                 for idx, item in enumerate(self.budget_data):
                     item["id"] = idx + 1
-                messagebox.showinfo("加载成功", f"从本地加载{len(self.budget_data)}个预算项目（无需重新导入Excel）")
+                messagebox.showinfo("加载成功", f"从本地加载{len(self.budget_data)}个预算项目（工程量已初始化为0）")
             except Exception as e:
                 messagebox.showwarning("本地数据加载失败", f"将重新导入Excel：{str(e)}")
                 self.budget_data = []
@@ -130,14 +134,14 @@ class HomeAndEnterpriseTool:
             # 新增：保存到本地持久化文件
             self.save_budget_data()
             messagebox.showinfo("加载成功",
-                                f"共加载{len(self.budget_data)}个项目（施工{len(sheet1_data)}个+材料{len(sheet2_data)}个）")
+                                f"共加载{len(self.budget_data)}个项目（施工{len(sheet1_data)}个+材料{len(sheet2_data)}个），工程量已初始化为0")
         except Exception as e:
             messagebox.showerror("预算表加载失败", f"错误原因：{str(e)}")
 
     def parse_sheet1(self, df):
         parsed = []
         df.columns = df.columns.str.strip()
-        required_cols = ["类别", "折扣后（含税）37%/元", "数量"]
+        required_cols = ["类别", "折扣后（含税）37%/元"]  # ========== 核心修改2：移除数量列，不再读取 ==========
         missing_cols = [col for col in required_cols if col not in df.columns]
         if missing_cols:
             raise ValueError(f"Sheet1缺少必要列：{', '.join(missing_cols)}")
@@ -148,7 +152,8 @@ class HomeAndEnterpriseTool:
                 continue
             unit_price = float(pd.to_numeric(row["折扣后（含税）37%/元"], errors="coerce")) if pd.notna(
                 row["折扣后（含税）37%/元"]) else 0.0
-            quantity = float(pd.to_numeric(row["数量"], errors="coerce")) if pd.notna(row["数量"]) else 0.0
+            # ========== 核心修改3：工程量直接初始化为0，不再读取Excel中的数量 ==========
+            quantity = 0.0
             is_length_unit = "元/公里" in project_name
             parsed.append({
                 "id": len(parsed) + 1,
@@ -156,8 +161,8 @@ class HomeAndEnterpriseTool:
                 "name": project_name,
                 "unit": "公里" if is_length_unit else "个/户/处等",
                 "unit_price": unit_price,
-                "quantity": quantity,
-                "total": quantity * unit_price,
+                "quantity": quantity,  # 初始化为0
+                "total": quantity * unit_price,  # 合计也为0
                 "is_length": is_length_unit
             })
         if not parsed:
@@ -167,7 +172,7 @@ class HomeAndEnterpriseTool:
     def parse_sheet2(self, df):
         parsed = []
         df.columns = df.columns.str.strip()
-        required_cols = ["材料", "含税", "数量"]
+        required_cols = ["材料", "含税"]  # ========== 核心修改4：移除数量列，不再读取 ==========
         missing_cols = [col for col in required_cols if col not in df.columns]
         if missing_cols:
             raise ValueError(f"Sheet2缺少必要列：{', '.join(missing_cols)}")
@@ -177,15 +182,16 @@ class HomeAndEnterpriseTool:
             if not project_name or project_name == "nan":
                 continue
             unit_price = float(pd.to_numeric(row["含税"], errors="coerce")) if pd.notna(row["含税"]) else 0.0
-            quantity = float(pd.to_numeric(row["数量"], errors="coerce")) if pd.notna(row["数量"]) else 0.0
+            # ========== 核心修改5：工程量直接初始化为0，不再读取Excel中的数量 ==========
+            quantity = 0.0
             parsed.append({
                 "id": len(parsed) + 1,
                 "category": "材料项目",
                 "name": project_name,
                 "unit": "个",
                 "unit_price": unit_price,
-                "quantity": quantity,
-                "total": quantity * unit_price,
+                "quantity": quantity,  # 初始化为0
+                "total": quantity * unit_price,  # 合计也为0
                 "is_length": False
             })
         if not parsed:
@@ -436,9 +442,11 @@ class HomeAndEnterpriseTool:
         if not unit:
             unit = "公里"
         is_length = simpledialog.askyesno("新增施工项目", "是否为长度类项目（单位：公里）？")
-        quantity = simpledialog.askfloat("新增施工项目", "请输入工程量：", initialvalue=0.0)
-        if quantity is None:
-            quantity = 0.0
+        # ========== 新增项目时，工程量初始化为0 ==========
+        quantity = 0.0
+        new_quantity = simpledialog.askfloat("新增施工项目", "请输入工程量：", initialvalue=quantity)
+        if new_quantity is not None:
+            quantity = new_quantity
 
         # 添加到数据列表
         new_id = len(self.budget_data) + 1
@@ -468,9 +476,11 @@ class HomeAndEnterpriseTool:
         unit = simpledialog.askstring("新增材料项目", "请输入单位（如：个）：", initialvalue="个")
         if not unit:
             unit = "个"
-        quantity = simpledialog.askfloat("新增材料项目", "请输入工程量：", initialvalue=0.0)
-        if quantity is None:
-            quantity = 0.0
+        # ========== 新增项目时，工程量初始化为0 ==========
+        quantity = 0.0
+        new_quantity = simpledialog.askfloat("新增材料项目", "请输入工程量：", initialvalue=quantity)
+        if new_quantity is not None:
+            quantity = new_quantity
 
         new_id = len(self.budget_data) + 1
         self.budget_data.append({
