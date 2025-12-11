@@ -16,27 +16,33 @@ EXCEL_SHEETS = ["施工项目（Sheet1）", "材料项目（Sheet2）"]
 MAX_IMG_WIDTH = Inches(4)
 MAX_IMG_HEIGHT = Inches(3)
 
+# 基准字体大小（所有字体基于此缩放）
+BASE_FONT_SIZES = {
+    "main": 9,  # 普通文本（标签、输入框）
+    "bold": 9,  # 粗体文本
+    "label_frame": 10,  # 分组标题
+    "generate_btn": 12,  # 生成按钮
+    "total_amount": 11,  # 总金额
+    "small": 8  # 小字体提示
+}
+
 
 class HomeAndEnterpriseTool:
     def __init__(self, root):
         self.root = root
         self.root.title("家集客项目预算与文档生成系统 v2.1")
 
-        # ========== UI适配优化：调整窗口大小以适配老旧屏幕 ==========
+        # ========== 窗口基础配置 ==========
         screen_width = self.root.winfo_screenwidth()
         screen_height = self.root.winfo_screenheight()
 
-        # 默认大小设置为屏幕的 80% 或固定值，适配 1366x768 分辨率
-        default_width = 1200
-        default_height = 760
-        if screen_width < 1280:
-            default_width = 1000
-            default_height = 700
+        # 窗口大小（固定基础尺寸，不随字体缩放改变）
+        default_width = 1200 if screen_width >= 1280 else 1000
+        default_height = 760 if screen_width >= 1280 else 700
 
         # 居中显示
         x_cordinate = int((screen_width / 2) - (default_width / 2))
         y_cordinate = int((screen_height / 2) - (default_height / 2))
-
         self.root.geometry(f"{default_width}x{default_height}+{x_cordinate}+{y_cordinate}")
         self.root.minsize(960, 600)
 
@@ -49,6 +55,7 @@ class HomeAndEnterpriseTool:
         self.image_paths = []
 
         self.status_var = tk.StringVar(value="✅ 系统初始化完成")
+        self.font_scale = 1.0  # 字体缩放比例（默认100%）
 
         # 加载数据
         self.load_config()
@@ -60,39 +67,47 @@ class HomeAndEnterpriseTool:
         self.setup_style()
         self.setup_ui()
 
-    # ===================== 样式配置（美化版） =====================
-    def setup_style(self):
+    # ===================== 动态样式配置（支持字体缩放） =====================
+    def setup_style(self, refresh=False):
+        """初始化或刷新样式（根据当前字体缩放比例）"""
         self.style = ttk.Style(self.root)
         self.style.theme_use("clam")
 
-        # 定义颜色和字体
+        # 计算当前字体大小（基准大小 * 缩放比例）
+        current_fonts = {
+            key: int(round(size * self.font_scale)) for key, size in BASE_FONT_SIZES.items()
+        }
+        # 确保最小字体不小于6号（避免过小无法显示）
+        current_fonts = {k: max(v, 6) for k, v in current_fonts.items()}
+
+        # 颜色配置
         primary_color = "#0078D7"  # 商务蓝
-        bg_color = "#F0F2F5"  # 浅灰背景
-        font_main = ("Microsoft YaHei UI", 9)
-        font_bold = ("Microsoft YaHei UI", 9, "bold")
+        self.bg_color = "#F0F2F5"  # 浅灰背景
+        self.root.configure(bg=self.bg_color)
 
-        self.root.configure(bg=bg_color)
-
-        # LabelFrame 样式
+        # LabelFrame 样式（分组标题）
         self.style.configure("Custom.TLabelframe",
-                             background=bg_color,
+                             background=self.bg_color,
                              relief="flat",
                              borderwidth=1)
         self.style.configure("Custom.TLabelframe.Label",
-                             font=("Microsoft YaHei UI", 10, "bold"),
+                             font=("Microsoft YaHei UI", current_fonts["label_frame"], "bold"),
                              foreground=primary_color,
-                             background=bg_color)
+                             background=self.bg_color)
 
         # Frame 样式
-        self.style.configure("TFrame", background=bg_color)
-        self.style.configure("TLabelframe", background=bg_color)
+        self.style.configure("TFrame", background=self.bg_color)
+        self.style.configure("TLabelframe", background=self.bg_color)
 
-        # Label 样式
-        self.style.configure("TLabel", background=bg_color, font=font_main, foreground="#333")
+        # Label 样式（普通文本）
+        self.style.configure("TLabel",
+                             background=self.bg_color,
+                             font=("Microsoft YaHei UI", current_fonts["main"]),
+                             foreground="#333")
 
-        # Button 样式
+        # Button 样式（普通按钮）
         self.style.configure("Accent.TButton",
-                             font=font_main,
+                             font=("Microsoft YaHei UI", current_fonts["main"]),
                              background=primary_color,
                              foreground="white",
                              borderwidth=0,
@@ -100,39 +115,118 @@ class HomeAndEnterpriseTool:
         self.style.map("Accent.TButton",
                        background=[('active', '#005A9E'), ('pressed', '#004578')])
 
+        # 生成按钮样式（特殊放大按钮）
         self.style.configure("Generate.TButton",
-                             font=("Microsoft YaHei UI", 12, "bold"),
+                             font=("Microsoft YaHei UI", current_fonts["generate_btn"], "bold"),
                              background="#28a745",  # 绿色
                              foreground="white",
                              padding=10)
         self.style.map("Generate.TButton",
                        background=[('active', '#218838')])
 
-        # Treeview (表格) 样式
+        # Treeview 样式（表格）
         self.style.configure("Treeview",
-                             font=("Microsoft YaHei UI", 9),
-                             rowheight=28,
+                             font=("Microsoft YaHei UI", current_fonts["main"]),
+                             rowheight=max(28, current_fonts["main"] * 2.5),  # 行高随字体调整
                              background="white",
                              fieldbackground="white",
                              borderwidth=0)
         self.style.configure("Treeview.Heading",
-                             font=font_bold,
+                             font=("Microsoft YaHei UI", current_fonts["bold"], "bold"),
                              background="#E1E4E8",
                              foreground="#333",
                              relief="flat")
         self.style.map("Treeview", background=[("selected", primary_color)])
 
-    # ===================== GUI界面布局（紧凑优化版） =====================
+        # 如果是刷新样式，需要更新所有已创建的控件字体
+        if refresh:
+            self.update_all_widget_fonts(current_fonts)
+
+    def update_all_widget_fonts(self, current_fonts):
+        """更新所有已创建控件的字体大小"""
+        # 1. 更新所有Label控件
+        for widget in self.root.winfo_children():
+            self._recursive_update_widget(widget, current_fonts)
+
+        # 2. 更新Treeview的列宽（避免文字溢出）
+        if hasattr(self, "construction_tree"):
+            self.construction_tree.column("name", width=max(400, current_fonts["main"] * 40))  # 项目名称列加宽
+            self.construction_tree.column("unit_price", width=max(100, current_fonts["main"] * 10))
+            self.construction_tree.column("quantity", width=max(100, current_fonts["main"] * 10))
+            self.construction_tree.column("total", width=max(100, current_fonts["main"] * 10))
+        if hasattr(self, "material_tree"):
+            self.material_tree.column("name", width=max(400, current_fonts["main"] * 40))
+            self.material_tree.column("unit_price", width=max(100, current_fonts["main"] * 10))
+            self.material_tree.column("quantity", width=max(100, current_fonts["main"] * 10))
+            self.material_tree.column("total", width=max(100, current_fonts["main"] * 10))
+
+        # 3. 更新总金额标签字体
+        if hasattr(self, "lbl_total"):
+            self.lbl_total.config(font=("Microsoft YaHei UI", current_fonts["total_amount"], "bold"))
+
+        # 4. 更新状态标签字体
+        if hasattr(self, "status_label"):
+            self.status_label.config(font=("Microsoft YaHei UI", current_fonts["main"]))
+
+    def _recursive_update_widget(self, widget, current_fonts):
+        """递归遍历控件树，更新字体"""
+        widget_type = str(type(widget)).split(".")[-1].strip(">").strip("'")
+
+        # Label 控件
+        if widget_type == "Label":
+            if widget.cget("text") == "双击表格行可快速修改工程量":
+                # 小字体提示
+                widget.config(font=("Microsoft YaHei UI", current_fonts["small"]))
+            else:
+                widget.config(font=("Microsoft YaHei UI", current_fonts["main"]))
+
+        # Entry 控件
+        elif widget_type == "Entry":
+            widget.config(font=("Microsoft YaHei UI", current_fonts["main"]))
+
+        # Button 控件（tk.Button，非ttk.Button）
+        elif widget_type == "Button":
+            widget.config(font=("Microsoft YaHei UI", current_fonts["main"]))
+
+        # DateEntry 控件（第三方控件）
+        elif widget_type == "DateEntry":
+            widget.config(font=("Microsoft YaHei UI", current_fonts["main"]))
+
+        # 递归处理子控件
+        for child in widget.winfo_children():
+            self._recursive_update_widget(child, current_fonts)
+
+    # ===================== GUI界面布局（保留全局滚动） =====================
     def setup_ui(self):
-        # 主容器
-        main_container = ttk.Frame(self.root, padding="10 10 10 10")
-        main_container.pack(fill=tk.BOTH, expand=True)
+        # ========== 全局滚动容器 ==========
+        self.scroll_canvas = tk.Canvas(self.root, bg=self.bg_color, highlightthickness=0)
+        vscroll_main = ttk.Scrollbar(self.root, orient=tk.VERTICAL, command=self.scroll_canvas.yview)
+        hscroll_main = ttk.Scrollbar(self.root, orient=tk.HORIZONTAL, command=self.scroll_canvas.xview)
+        self.scroll_canvas.configure(
+            yscrollcommand=vscroll_main.set,
+            xscrollcommand=hscroll_main.set
+        )
+
+        # 布局滚动条和Canvas
+        vscroll_main.pack(side=tk.RIGHT, fill=tk.Y)
+        hscroll_main.pack(side=tk.BOTTOM, fill=tk.X)
+        self.scroll_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        # 内部框架：放置所有原有内容
+        main_container = ttk.Frame(self.scroll_canvas, padding="10 10 10 10")
+        self.canvas_window = self.scroll_canvas.create_window((0, 0), window=main_container, anchor=tk.NW)
+
+        # 绑定事件：更新滚动区域、鼠标滚轮
+        main_container.bind("<Configure>", self.on_main_container_configure)
+        self.scroll_canvas.bind("<MouseWheel>", self.on_mouse_wheel)  # Windows滚轮
+        self.scroll_canvas.bind("<Button-4>", self.on_mouse_wheel)  # Linux滚轮上
+        self.scroll_canvas.bind("<Button-5>", self.on_mouse_wheel)  # Linux滚轮下
 
         # --- 1. 顶部区域 ---
         top_frame = ttk.LabelFrame(main_container, text="🛠️ 项目与基础信息配置", style="Custom.TLabelframe")
         top_frame.pack(fill=tk.X, pady=(0, 10))
 
-        # 第一行：项目核心信息
+        # 第一行：项目核心信息 + 字体缩放按钮
         input_frame_1 = ttk.Frame(top_frame)
         input_frame_1.pack(fill=tk.X, padx=10, pady=5)
 
@@ -148,6 +242,16 @@ class HomeAndEnterpriseTool:
         ttk.Label(input_frame_1, text="实施周期：").pack(side=tk.LEFT)
         self.cycle_var = tk.StringVar(value="15天")
         ttk.Entry(input_frame_1, textvariable=self.cycle_var, width=8).pack(side=tk.LEFT)
+
+        # ========== 字体缩放按钮（替换原窗口缩放按钮） ==========
+        btn_frame = ttk.Frame(input_frame_1)
+        btn_frame.pack(side=tk.RIGHT, padx=(15, 0))
+        ttk.Button(btn_frame, text="📝 字体放大", command=self.font_zoom_in, style="Accent.TButton", width=8).pack(
+            side=tk.LEFT, padx=2)
+        ttk.Button(btn_frame, text="📝 字体缩小", command=self.font_zoom_out, style="Accent.TButton", width=8).pack(
+            side=tk.LEFT, padx=2)
+        ttk.Button(btn_frame, text="📝 字体还原", command=self.font_restore, style="Accent.TButton", width=8).pack(
+            side=tk.LEFT, padx=2)
 
         ttk.Separator(top_frame, orient=tk.HORIZONTAL).pack(fill=tk.X, padx=10, pady=5)
 
@@ -196,11 +300,11 @@ class HomeAndEnterpriseTool:
         notebook = ttk.Notebook(budget_frame)
         notebook.pack(fill=tk.BOTH, expand=True, padx=5, pady=0)
 
-        # ========== 修复点：正确添加 Tab ==========
+        # 施工项目表格
         self.construction_tree = self.create_scrolled_tree(notebook, "施工项目")
-        # .master 是 frame，.master.master 是 notebook。我们只需添加 frame。
         notebook.add(self.construction_tree.master, text="  🚧 施工项目  ")
 
+        # 材料项目表格
         self.material_tree = self.create_scrolled_tree(notebook, "材料项目")
         notebook.add(self.material_tree.master, text="  🔩 材料项目  ")
 
@@ -208,10 +312,12 @@ class HomeAndEnterpriseTool:
         total_bar = ttk.Frame(budget_frame, style="TFrame")
         total_bar.pack(fill=tk.X, padx=10, pady=5)
         self.total_var = tk.StringVar(value="当前总金额：0.00元")
-        lbl_total = ttk.Label(total_bar, textvariable=self.total_var, font=("Microsoft YaHei UI", 11, "bold"),
-                              foreground="#D32F2F")
-        lbl_total.pack(side=tk.RIGHT)
-        ttk.Label(total_bar, text="双击表格行可快速修改工程量", foreground="#888", font=("Microsoft YaHei UI", 8)).pack(
+        self.lbl_total = ttk.Label(total_bar, textvariable=self.total_var,
+                                   font=("Microsoft YaHei UI", BASE_FONT_SIZES["total_amount"], "bold"),
+                                   foreground="#D32F2F")
+        self.lbl_total.pack(side=tk.RIGHT)
+        ttk.Label(total_bar, text="双击表格行可快速修改工程量", foreground="#888",
+                  font=("Microsoft YaHei UI", BASE_FONT_SIZES["small"])).pack(
             side=tk.LEFT)
 
         # --- 3. 底部区域：模板与生成 ---
@@ -254,18 +360,55 @@ class HomeAndEnterpriseTool:
                                        style="Generate.TButton")
         self.generate_btn.pack(side=tk.RIGHT, padx=10)
 
-        status_label = ttk.Label(action_frame, textvariable=self.status_var, foreground="#0078D7",
-                                 font=("Microsoft YaHei UI", 9))
-        status_label.pack(side=tk.LEFT, padx=10)
+        self.status_label = ttk.Label(action_frame, textvariable=self.status_var, foreground="#0078D7",
+                                      font=("Microsoft YaHei UI", BASE_FONT_SIZES["main"]))
+        self.status_label.pack(side=tk.LEFT, padx=10)
 
         self.refresh_treeviews()
+
+    # ===================== 全局滚动相关函数 =====================
+    def on_main_container_configure(self, event):
+        """更新Canvas的滚动区域为内容的实际大小"""
+        self.scroll_canvas.configure(scrollregion=self.scroll_canvas.bbox("all"))
+
+    def on_mouse_wheel(self, event):
+        """处理鼠标滚轮事件（兼容Windows/Linux）"""
+        if event.delta > 0 or event.num == 4:
+            self.scroll_canvas.yview_scroll(-1, "units")  # 向上滚动
+        elif event.delta < 0 or event.num == 5:
+            self.scroll_canvas.yview_scroll(1, "units")  # 向下滚动
+
+    # ===================== 字体缩放相关函数 =====================
+    def font_zoom_in(self):
+        """字体放大（每次10%，最大200%）"""
+        if self.font_scale < 2.0:
+            self.font_scale += 0.1
+            self.update_font_size()
+
+    def font_zoom_out(self):
+        """字体缩小（每次10%，最小60%）"""
+        if self.font_scale > 0.6:
+            self.font_scale -= 0.1
+            self.update_font_size()
+
+    def font_restore(self):
+        """字体还原为默认大小（100%）"""
+        self.font_scale = 1.0
+        self.update_font_size()
+
+    def update_font_size(self):
+        """更新字体大小并刷新界面"""
+        # 重新配置样式（传入refresh=True表示刷新）
+        self.setup_style(refresh=True)
+        # 刷新表格数据（确保表格内容字体同步更新）
+        self.refresh_treeviews()
+        # 更新状态提示
+        self.status_var.set(f"✅ 字体已调整至{int(self.font_scale * 100)}%")
 
     # ===================== 辅助UI构建函数 =====================
     def create_scrolled_tree(self, parent, category):
         """创建一个带滚动条的Treeview容器"""
-        # ========== 修复点：移除 frame.pack() ==========
         frame = ttk.Frame(parent)
-        # frame.pack(fill=tk.BOTH, expand=True) <--- 已删除此行
 
         vscroll = ttk.Scrollbar(frame, orient=tk.VERTICAL)
         hscroll = ttk.Scrollbar(frame, orient=tk.HORIZONTAL)
@@ -282,25 +425,29 @@ class HomeAndEnterpriseTool:
         hscroll.pack(side=tk.BOTTOM, fill=tk.X)
         tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
+        # 表格标题
         tree.heading("id", text="序号")
         tree.heading("name", text="项目名称")
         tree.heading("unit_price", text="单价 (元)")
         tree.heading("quantity", text="工程量")
         tree.heading("total", text="合计 (元)")
 
+        # 初始列宽（会随字体缩放调整）
         tree.column("id", width=50, anchor="center")
         tree.column("name", width=400, anchor="w")
         tree.column("unit_price", width=100, anchor="e")
         tree.column("quantity", width=100, anchor="center")
         tree.column("total", width=100, anchor="e")
 
+        # 行颜色交替
         tree.tag_configure("oddrow", background="white")
         tree.tag_configure("evenrow", background="#F8F9FA")
 
+        # 双击修改工程量
         tree.bind("<Double-1>", self.edit_quantity)
         return tree
 
-    # ===================== 逻辑功能保持不变 =====================
+    # ===================== 原有逻辑功能（无修改） =====================
     def save_budget_data(self):
         try:
             with open(BUDGET_DATA_FILE, "w", encoding="utf-8") as f:
@@ -418,6 +565,7 @@ class HomeAndEnterpriseTool:
         return parsed
 
     def refresh_treeviews(self):
+        """刷新表格数据（确保字体缩放后内容正常显示）"""
         for item in self.construction_tree.get_children():
             self.construction_tree.delete(item)
         for item in self.material_tree.get_children():
@@ -428,7 +576,6 @@ class HomeAndEnterpriseTool:
             return
 
         self.total_amount = 0.0
-
         count_c = 0
         count_m = 0
 
@@ -454,6 +601,7 @@ class HomeAndEnterpriseTool:
 
         self.total_var.set(f"当前总金额：{self.total_amount:.2f}元")
 
+    # 以下为原有功能函数（add_construction_project、add_material_project等），无修改
     def add_construction_project(self):
         name = simpledialog.askstring("新增施工项目", "请输入项目名称：")
         if not name: return
