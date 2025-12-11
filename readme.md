@@ -1,6 +1,8 @@
 # 预算项目管理与文档生成系统 - README
 [![Python Version](https://img.shields.io/badge/Python-3.7%2B-blue.svg)](https://www.python.org/)
-[![License](https://img.shields.io/badge/License-Private-red.svg)](LICENSE)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![GitHub Stars](https://img.shields.io/github/stars/your-username/budget-project-system?style=social)](https://github.com/your-username/budget-project-system)
+[![GitHub Forks](https://img.shields.io/github/forks/your-username/budget-project-system?style=social)](https://github.com/your-username/budget-project-system)
 
 ## 一、项目简介
 本项目是一款基于Python Tkinter开发的**预算项目管理与文档生成GUI工具**，主要面向工程预算、项目管理场景，提供预算项目的增删改查、数据持久化存储、Excel导出以及Word文档（申请表、会审单）自动生成功能。工具支持跨平台运行（Windows、macOS、麒麟Linux），并针对不同系统做了环境适配。
@@ -11,6 +13,9 @@
 3. **Excel导出**：筛选工程量大于0的项目，导出为Excel文件（支持xlsx格式）。
 4. **Word文档生成**：根据项目数据自动填充申请表、会审单模板，支持图片插入、清单/计划内容自动填写（保留原模板文字，右侧列填充内容）。
 5. **跨平台兼容**：适配Windows、macOS、麒麟Linux（银河麒麟/中标麒麟）系统。
+
+### 开源说明
+本项目已从私有项目转为**开源项目**，遵循MIT开源协议，欢迎社区贡献代码、提交Issue或提出优化建议。
 
 ## 二、环境依赖
 ### 1. 基础环境
@@ -57,12 +62,17 @@ pip install pyinstaller
 ```
 
 #### 步骤3：获取项目代码
-将项目代码复制到本地目录（如`D:\budget-project-system`），确保项目目录包含主脚本（如`main.py`）、配置文件等。
+```bash
+# 克隆仓库（推荐）
+git clone https://github.com/your-username/budget-project-system.git
+cd budget-project-system
+
+# 或直接下载源码压缩包，解压后进入目录
+```
 
 #### 步骤4：运行脚本
 在项目目录下，执行以下命令：
 ```bash
-cd D:\budget-project-system
 python main.py
 ```
 此时GUI界面会启动，即可使用功能。
@@ -127,12 +137,15 @@ pip3 install pyinstaller
 ```
 
 #### 步骤4：获取项目代码
-将项目代码复制到本地目录（如`~/Documents/budget-project-system`）。
+```bash
+# 克隆仓库
+git clone https://github.com/your-username/budget-project-system.git
+cd budget-project-system
+```
 
 #### 步骤5：运行脚本
 在终端中执行以下命令：
 ```bash
-cd ~/Documents/budget-project-system
 python3 main.py
 ```
 
@@ -190,11 +203,14 @@ pip3 install pyinstaller -i https://pypi.tuna.tsinghua.edu.cn/simple/
 ```
 
 #### 步骤4：获取项目代码
-将项目代码复制到本地目录（如`/home/user/budget-project-system`）。
+```bash
+# 克隆仓库
+git clone https://github.com/your-username/budget-project-system.git
+cd budget-project-system
+```
 
 #### 步骤5：运行脚本
 ```bash
-cd /home/user/budget-project-system
 python3 main.py
 ```
 
@@ -209,6 +225,7 @@ pyinstaller -F -w main.py
 ### 1. 首次运行
 - 首次运行时，项目会自动创建`budget_data.json`文件（数据持久化文件），用于存储项目数据。
 - 若需生成Word文档，需提前准备**申请表模板.docx**和**会审单模板.docx**，并在工具中选择模板路径。
+- **开源提示**：请勿在`budget_data.json`中存储敏感数据（如企业机密、个人信息），若需存储敏感数据，建议自行添加加密逻辑。
 
 ### 2. 功能操作
 #### （1）项目管理
@@ -228,6 +245,7 @@ pyinstaller -F -w main.py
 
 ### 3. 数据存储
 - 项目数据保存在`budget_data.json`文件中，可手动备份该文件以防止数据丢失。
+- 若需共享数据，建议清理敏感信息后再进行分享。
 
 ## 五、常见问题解决
 ### 1. tkinter模块缺失
@@ -237,7 +255,7 @@ pyinstaller -F -w main.py
 
 ### 2. 依赖库安装失败
 - 原因：外网访问慢或网络限制。
-- 解决：使用国内PyPI源（如清华源），在`pip install`命令后添加`-i https://pypi.tuna.tsinghua.edu.cn/simple/`。
+- 解决：使用国内PyPI源（如清华源、阿里云源），在`pip install`命令后添加`-i https://pypi.tuna.tsinghua.edu.cn/simple/`。
 
 ### 3. Word文档生成后内容覆盖原模板文字
 - 原因：模板中“工作量及材料清单”等关键词的单元格位置异常。
@@ -245,7 +263,7 @@ pyinstaller -F -w main.py
 
 ### 4. Excel导出失败
 - 原因：缺少`openpyxl`库（pandas导出xlsx依赖）。
-- 解决：执行`pip install openpyxl`。
+- 解决：执行`pip install openpyxl`（Windows）或`pip3 install openpyxl`（macOS/Linux）。
 
 ### 5. 打包后的可执行文件无法运行
 - **Windows**：确保打包时使用`-w`参数，且依赖库已全部打包；若缺失DLL文件，可安装VC++运行库。
@@ -256,24 +274,75 @@ pyinstaller -F -w main.py
 ```
 budget-project-system/
 ├── main.py                # 主程序入口
-├── budget_data.json       # 项目数据持久化文件（自动生成）
-├── 申请表模板.docx         # 自定义Word模板（需手动准备）
-├── 会审单模板.docx         # 自定义Word模板（需手动准备）
+├── budget_data.json       # 项目数据持久化文件（自动生成，建议添加到.gitignore）
+├── 申请表模板.docx         # 自定义Word模板（示例模板可在docs目录下获取）
+├── 会审单模板.docx         # 自定义Word模板（示例模板可在docs目录下获取）
 ├── icon.ico               # Windows图标文件（可选）
 ├── icon.icns              # macOS图标文件（可选）
+├── docs/                  # 文档目录（含模板示例、使用教程）
+├── .gitignore             # Git忽略文件（排除敏感数据、临时文件）
 └── README.md              # 项目说明文档
 ```
 
-## 七、许可证
-本项目为**私有项目（Private）**，受版权保护。未经项目所有者的书面授权，任何单位或个人不得擅自复制、修改、分发、商用本项目的代码、文档及衍生产品，禁止将本项目用于任何商业或公开场景。
+## 七、贡献指南
+### 1. 贡献方式
+- **提交Issue**：报告Bug、提出功能需求或优化建议。
+- **提交PR**：修复Bug、新增功能、优化代码或文档。
+- **完善文档**：补充使用教程、注释或示例模板。
 
-### 授权说明
-- 仅项目授权用户可获取项目代码、进行内部使用和二次开发（需遵循授权协议）。
-- 如需获取授权，请联系项目所有者。
+### 2. 贡献流程
+1. Fork本仓库到你的GitHub账号。
+2. 克隆Fork后的仓库到本地：`git clone https://github.com/your-username/budget-project-system.git`。
+3. 创建新分支：`git checkout -b feature/your-feature-name`（功能分支）或`bugfix/your-bug-fix`（修复分支）。
+4. 提交代码修改：`git commit -m "feat: 新增XX功能"`（遵循[Conventional Commits](https://www.conventionalcommits.org/)规范）。
+5. 推送分支到远程：`git push origin feature/your-feature-name`。
+6. 打开GitHub仓库，提交Pull Request（PR），描述修改内容。
 
-## 八、致谢
+### 3. 代码规范
+- 遵循PEP 8 Python代码规范。
+- 新增功能需添加对应的注释和使用示例。
+- 修复Bug需附带测试用例（若适用）。
+
+## 八、行为准则
+本项目遵循[Contributor Covenant Code of Conduct](https://www.contributor-covenant.org/version/2/1/code_of_conduct/)，参与项目的贡献者需遵守以下准则：
+- 尊重他人，友好沟通，禁止使用攻击性语言。
+- 专注于项目改进，不讨论无关话题。
+- 对新人友好，耐心解答问题。
+
+
+## 九、许可证
+本项目采用**MIT开源许可证**（MIT License），详见LICENSE文件。以下是许可证核心内容：
+
+```
+MIT License
+
+Copyright (c) 2025 [JizhouMao]
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+## 十、致谢
 - [tkinter](https://docs.python.org/3/library/tkinter.html)：Python内置GUI库。
 - [tkcalendar](https://pypi.org/project/tkcalendar/)：日期选择控件。
 - [pandas](https://pandas.pydata.org/)：数据处理库。
 - [python-docx](https://python-docx.readthedocs.io/)：Word文档处理库。
 - [pyinstaller](https://www.pyinstaller.org/)：Python打包工具。
+- 所有为项目贡献代码、提出建议的社区成员。
+
+---
