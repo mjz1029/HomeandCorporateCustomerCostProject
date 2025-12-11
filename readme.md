@@ -1,8 +1,8 @@
 # 预算项目管理与文档生成系统 - README
 [![Python Version](https://img.shields.io/badge/Python-3.7%2B-blue.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![GitHub Stars](https://img.shields.io/github/stars/your-username/budget-project-system?style=social)](https://github.com/your-username/budget-project-system)
-[![GitHub Forks](https://img.shields.io/github/forks/your-username/budget-project-system?style=social)](https://github.com/your-username/budget-project-system)
+[![GitHub Stars](https://img.shields.io/github/stars/mjz1029/budgHomeandCorporateCustomerCostProject?style=social)](https://github.com/mjz1029/HomeandCorporateCustomerCostProject)
+[![GitHub Forks](https://img.shields.io/github/forks/mjz1029/HomeandCorporateCustomerCostProject?style=social)](https://github.com/mjz1029/HomeandCorporateCustomerCostProject)
 
 ## 一、项目简介
 本项目是一款基于Python Tkinter开发的**预算项目管理与文档生成GUI工具**，主要面向工程预算、项目管理场景，提供预算项目的增删改查、数据持久化存储、Excel导出以及Word文档（申请表、会审单）自动生成功能。工具支持跨平台运行（Windows、macOS、麒麟Linux），并针对不同系统做了环境适配。
@@ -64,8 +64,8 @@ pip install pyinstaller
 #### 步骤3：获取项目代码
 ```bash
 # 克隆仓库（推荐）
-git clone https://github.com/your-username/budget-project-system.git
-cd budget-project-system
+git clone https://github.com/mjz1029/HomeandCorporateCustomerCostProject.git
+cd HomeandCorporateCustomerCostProject
 
 # 或直接下载源码压缩包，解压后进入目录
 ```
@@ -139,8 +139,8 @@ pip3 install pyinstaller
 #### 步骤4：获取项目代码
 ```bash
 # 克隆仓库
-git clone https://github.com/your-username/budget-project-system.git
-cd budget-project-system
+git clone https://github.com/mjz1029/HomeandCorporateCustomerCostProject.git
+cd HomeandCorporateCustomerCostProject
 ```
 
 #### 步骤5：运行脚本
@@ -205,8 +205,8 @@ pip3 install pyinstaller -i https://pypi.tuna.tsinghua.edu.cn/simple/
 #### 步骤4：获取项目代码
 ```bash
 # 克隆仓库
-git clone https://github.com/your-username/budget-project-system.git
-cd budget-project-system
+git clone https://github.com/mjz1029/HomeandCorporateCustomerCostProject.git
+cd HomeandCorporateCustomerCostProject
 ```
 
 #### 步骤5：运行脚本
@@ -249,74 +249,87 @@ pyinstaller -F -w main.py
 
 ## 五、常见问题解决
 ### 1. tkinter模块缺失
-- **Windows**：重新安装Python并勾选“Add Python to PATH”，或通过`pip install tkinter`安装。
-- **macOS**：执行`brew install tcl-tk`，并重新安装Python。
-- **麒麟Linux**：执行`sudo apt install python3-tk`。
+- **Windows**：重新安装Python并勾选“Add Python to PATH”，若仍缺失，可尝试通过`pip install tkinter`安装（部分Python版本需单独安装）。
+- **macOS**：执行`brew install tcl-tk`，并重新安装Python，确保安装时关联了Tcl/Tk库。
+- **麒麟Linux**：执行`sudo apt install python3-tk`，若为CentOS系，执行`sudo yum install python3-tkinter`。
 
 ### 2. 依赖库安装失败
-- 原因：外网访问慢或网络限制。
-- 解决：使用国内PyPI源（如清华源、阿里云源），在`pip install`命令后添加`-i https://pypi.tuna.tsinghua.edu.cn/simple/`。
+- 原因：外网访问慢或网络限制，或Python版本与库版本不兼容。
+- 解决：
+  1. 使用国内PyPI源（如清华源、阿里云源），在`pip install`命令后添加`-i https://pypi.tuna.tsinghua.edu.cn/simple/`；
+  2. 降低库版本（如`pip install pandas==1.3.5`），适配Python 3.7等低版本。
 
 ### 3. Word文档生成后内容覆盖原模板文字
-- 原因：模板中“工作量及材料清单”等关键词的单元格位置异常。
-- 解决：确保模板中的关键词单独在一个单元格中，工具会在右侧列填充内容；或检查项目代码中的关键词查找逻辑是否匹配模板文字。
+- 原因：模板中“工作量及材料清单”等关键词的单元格位置异常，或关键词被其他文字包含。
+- 解决：
+  1. 确保模板中的关键词单独在一个单元格中，工具会在右侧列填充内容；
+  2. 检查项目代码中的关键词查找逻辑，修改匹配的关键词文本以适配模板。
 
 ### 4. Excel导出失败
-- 原因：缺少`openpyxl`库（pandas导出xlsx依赖）。
-- 解决：执行`pip install openpyxl`（Windows）或`pip3 install openpyxl`（macOS/Linux）。
+- 原因：缺少`openpyxl`库（pandas导出xlsx依赖），或导出路径包含中文/特殊字符。
+- 解决：
+  1. 执行`pip install openpyxl`（Windows）或`pip3 install openpyxl`（macOS/Linux）；
+  2. 选择不含中文/特殊字符的导出路径。
 
 ### 5. 打包后的可执行文件无法运行
-- **Windows**：确保打包时使用`-w`参数，且依赖库已全部打包；若缺失DLL文件，可安装VC++运行库。
-- **macOS**：确保打包时关联了tkinter库，或右键可执行文件选择“打开”（绕过系统安全限制）。
-- **麒麟Linux**：确保打包时使用系统对应的Python版本，且安装了`libgtk-3-dev`等GUI依赖（`sudo apt install libgtk-3-dev`）。
+- **Windows**：确保打包时使用`-w`参数，且依赖库已全部打包；若缺失DLL文件，安装VC++运行库（[微软官方下载](https://learn.microsoft.com/zh-CN/cpp/windows/latest-supported-vc-redist?view=msvc-170)）。
+- **macOS**：确保打包时关联了tkinter库，或右键可执行文件选择“打开”（绕过系统安全限制）；若提示“无法验证开发者”，可在“系统设置-隐私与安全性”中允许运行。
+- **麒麟Linux**：确保打包时使用系统对应的Python版本，且安装了`libgtk-3-dev`等GUI依赖（`sudo apt install libgtk-3-dev`）；赋予可执行权限（`chmod +x ./dist/main`）。
 
 ## 六、项目结构
 ```
-budget-project-system/
+HomeandCorporateCustomerCostProject/
 ├── main.py                # 主程序入口
 ├── budget_data.json       # 项目数据持久化文件（自动生成，建议添加到.gitignore）
 ├── 申请表模板.docx         # 自定义Word模板（示例模板可在docs目录下获取）
 ├── 会审单模板.docx         # 自定义Word模板（示例模板可在docs目录下获取）
 ├── icon.ico               # Windows图标文件（可选）
 ├── icon.icns              # macOS图标文件（可选）
-├── docs/                  # 文档目录（含模板示例、使用教程）
+├── docs/                  # 文档目录（含模板示例、使用教程、截图，可选）
 ├── .gitignore             # Git忽略文件（排除敏感数据、临时文件）
+├── LICENSE                # MIT开源许可证文件
 └── README.md              # 项目说明文档
 ```
 
 ## 七、贡献指南
 ### 1. 贡献方式
-- **提交Issue**：报告Bug、提出功能需求或优化建议。
-- **提交PR**：修复Bug、新增功能、优化代码或文档。
-- **完善文档**：补充使用教程、注释或示例模板。
+- **提交Issue**：报告Bug、提出功能需求或优化建议（建议附上复现步骤、系统环境信息）。
+- **提交PR**：修复Bug、新增功能、优化代码或文档（建议先在Issue中沟通需求，避免重复开发）。
+- **完善文档**：补充使用教程、注释、示例模板或项目截图。
 
 ### 2. 贡献流程
 1. Fork本仓库到你的GitHub账号。
-2. 克隆Fork后的仓库到本地：`git clone https://github.com/your-username/budget-project-system.git`。
+2. 克隆Fork后的仓库到本地：`git clone https://github.com/你的用户名/HomeandCorporateCustomerCostProject.git`。
 3. 创建新分支：`git checkout -b feature/your-feature-name`（功能分支）或`bugfix/your-bug-fix`（修复分支）。
 4. 提交代码修改：`git commit -m "feat: 新增XX功能"`（遵循[Conventional Commits](https://www.conventionalcommits.org/)规范）。
 5. 推送分支到远程：`git push origin feature/your-feature-name`。
-6. 打开GitHub仓库，提交Pull Request（PR），描述修改内容。
+6. 打开GitHub仓库，提交Pull Request（PR），描述修改内容、动机及测试情况。
 
 ### 3. 代码规范
-- 遵循PEP 8 Python代码规范。
-- 新增功能需添加对应的注释和使用示例。
-- 修复Bug需附带测试用例（若适用）。
+- 遵循PEP 8 Python代码规范（可使用`pylint`/`black`工具格式化代码）。
+- 新增功能需添加对应的注释和使用示例，复杂逻辑建议添加文档字符串（docstring）。
+- 修复Bug需附带复现步骤和修复思路（在PR中说明），若适用，添加测试用例。
 
 ## 八、行为准则
-本项目遵循[Contributor Covenant Code of Conduct](https://www.contributor-covenant.org/version/2/1/code_of_conduct/)，参与项目的贡献者需遵守以下准则：
-- 尊重他人，友好沟通，禁止使用攻击性语言。
-- 专注于项目改进，不讨论无关话题。
-- 对新人友好，耐心解答问题。
+本项目遵循[Contributor Covenant Code of Conduct](https://www.contributor-covenant.org/version/2/1/code_of_conduct/)（贡献者公约行为准则），参与项目的贡献者需遵守以下核心准则：
+- 尊重他人，友好沟通，禁止使用攻击性、歧视性语言。
+- 专注于项目改进，不讨论无关的政治、宗教等话题。
+- 对新人友好，耐心解答问题，提供建设性的反馈。
 
+## 九、安全漏洞报告
+若发现项目中的安全漏洞（如本地存储敏感信息泄露、文件路径遍历等），请不要直接提交Issue（避免漏洞公开），可通过以下方式处理：
+1. 在GitHub Issues中添加**[Security]**标签，详细描述漏洞情况（隐藏敏感信息）。
+2. 提交PR修复漏洞，并在PR中说明漏洞影响和修复方案。
 
-## 九、许可证
+项目维护者会及时处理安全相关的Issue和PR，并在修复后更新版本说明。
+
+## 十、许可证
 本项目采用**MIT开源许可证**（MIT License），详见LICENSE文件。以下是许可证核心内容：
 
 ```
 MIT License
 
-Copyright (c) 2025 [JizhouMao]
+Copyright (c) 2025 JizhouMao
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -337,12 +350,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## 十、致谢
+## 十一、致谢
 - [tkinter](https://docs.python.org/3/library/tkinter.html)：Python内置GUI库。
 - [tkcalendar](https://pypi.org/project/tkcalendar/)：日期选择控件。
 - [pandas](https://pandas.pydata.org/)：数据处理库。
 - [python-docx](https://python-docx.readthedocs.io/)：Word文档处理库。
 - [pyinstaller](https://www.pyinstaller.org/)：Python打包工具。
+- 新疆移动网络维护人员的需求反馈，为项目功能优化提供了方向。
 - 所有为项目贡献代码、提出建议的社区成员。
 
 ---
